@@ -50,11 +50,8 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 	private Frame ramka;
 	private boolean flag;
 	private boolean userButton;
-	private ArrayList<Frame> zapis;
-	private ArrayList<Frame> odczyt;
-	private ObjectOutputStream objectOutputStream;
-	private ObjectInputStream objectInputStream;
-	private 	File file;
+	private ArrayList<Frame> frameList;
+	
 
 	public void initialize()  {
 
@@ -66,15 +63,27 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 		greenButton = mediaFlange.getInput("UserButton");
 		greenButton_active = new BooleanIOCondition(greenButton, true);
 
-		zapis = new ArrayList<Frame>();
+		frameList = new ArrayList<Frame>();
 		
 
-
+ 
 
 	}
 
 
 	public void run() {
 
+		while (true){
+			userButton = mediaFlange.getUserButton();
+			
+			if (userButton){
+				mediaFlange.setLEDBlue(true);
+			} else{
+				mediaFlange.setLEDBlue(false);
+			}
+		
+		}
+		
+		
 	}
 }
