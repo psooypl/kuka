@@ -1,6 +1,5 @@
 package pbl;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,28 +34,27 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
-
 public class TeachingByDemonstration extends RoboticsAPIApplication {
-
 
 	private LBR lbr;
 	private MediaFlangeIOGroup mediaFlange;
 	private Controller kuka_Sunrise_Cabinet_1;
 	private AbstractIO greenButton;
-	private BooleanIOCondition greenButton_active;
-	private double velocity = 0.1;
-	private double positionChange = 50;
 	private HandGuidingMotion handGuide;
-	private Frame ramka;
-	private boolean flag;
+    private BooleanIOCondition greenButton_active;
+	private Frame nextFrame;
+	private boolean flag, movingFlag;
 	private boolean userButton;
 	private ArrayList<Frame> frameList;
+	private int licznik = 1;
+	private int stiffness = 500;
+	private CartesianImpedanceControlMode impedanceControlMode;
 	
-
-	public void initialize()  {
+	public void initialize() {
 
 		lbr = getContext().getDeviceFromType(LBR.class);
-		kuka_Sunrise_Cabinet_1 = getController("KUKA_Sunrise_Cabinet_1"); // inicjalizacja kontrolera
+		kuka_Sunrise_Cabinet_1 = getController("KUKA_Sunrise_Cabinet_1"); // inicjalizacja
+		// kontrolera
 		mediaFlange = new MediaFlangeIOGroup(kuka_Sunrise_Cabinet_1);
 		mediaFlange.setLEDBlue(false);
 		handGuide = new HandGuidingMotion();
@@ -64,26 +62,80 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 		greenButton_active = new BooleanIOCondition(greenButton, true);
 
 		frameList = new ArrayList<Frame>();
-		
 
- 
+		impedanceControlMode = new CartesianImpedanceControlMode();
+		impedanceControlMode.parametrize(CartDOF.X).setStiffness(stiffness);
+		impedanceControlMode.parametrize(CartDOF.Y).setStiffness(stiffness);
+		impedanceControlMode.parametrize(CartDOF.Z).setStiffness(stiffness);
+
+
+
+		IUserKeyBar userBar = getApplicationUI().createUserKeyBar("User bar"); // stworzenie paska uzytkownika
+		IUserKeyListener listMoving = new IUserKeyListener() {
+			@Override
+			public void onKeyEvent(IUserKey key, UserKeyEvent event) {
+				if (event == UserKeyEvent.KeyDown) {
+					getLogger().info("Robot rozpocznie poruszanie siê po trajektorii");
+					movingFlag = true;
+				}
+			}
+		};
+
+		IUserKey key0 = userBar.addUserKey(0, listMoving, true);
+		key0.setText(UserKeyAlignment.Middle, "Move trajectory");
+		userBar.publish();
 
 	}
-
-
+ 
 	public void run() {
 
-		while (true){
-			userButton = mediaFlange.getUserButton();
+		lbr.move(handGuide);
+		
+		while (true) {
+
 			
-			if (userButton){
-				mediaFlange.setLEDBlue(true);
-			} else{
-				mediaFlange.setLEDBlue(false);
+			userButton = mediaFlange.getUserButton();
+
+			if (!userButton){
+				if(flag){
+					lbr.move(handGuide);
+					flag = false;
+				}
 			}
-		
+
+			if(userButton){
+				if(!flag){
+					getLogger().info("Ramka nr: " + Integer.toString(licznik) + " zosta³a dodana.");
+					nextFrame = lbr.getCurrentCartesianPosition(lbr.getFlange());
+					frameList.add(nextFrame);
+					licznik++;
+				}
+				flag = true;
+			}
+
+			if(movingFlag && !userButton && !flag){
+				for (int i = 0; i < licznik - 1; i++){
+					lbr.move(ptp(frameList.get(i)).setJointVelocityRel(0.1).setMode(impedanceControlMode));
+				}
+				movingFlag = false;
+				getLogger().info("Flaga ruchu wylaczona");
+			}
+
 		}
-		
-		
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
