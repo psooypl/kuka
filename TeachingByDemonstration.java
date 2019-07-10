@@ -56,7 +56,9 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 			public void onKeyEvent(IUserKey key, UserKeyEvent event) {
 				if (event == UserKeyEvent.KeyDown) {
 					getLogger().info("Robot rozpocznie poruszanie siê po trajektorii");
+					flag = false;
 					movingFlag = true;
+
 				}
 			}
 		};
@@ -74,6 +76,25 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 		while (true) {
 			userButton = mediaFlange.getUserButton();
 
+			if(userButton){
+				if(!flag){
+					getLogger().info("Ramka nr: " + Integer.toString(licznik) + " zosta³a dodana.");
+					nextFrame = lbr.getCurrentCartesianPosition(lbr.getFlange());
+					frameList.add(nextFrame);
+					licznik++;
+
+				flag = true;
+			}
+
+			if(movingFlag){
+				for (int i = 0; i < licznik - 1; i++){
+					lbr.move(ptp(frameList.get(i)).setJointVelocityRel(0.5).setMode(impedanceControlMode));
+				}
+				movingFlag = false;
+				getLogger().info("Flaga ruchu wylaczona");
+
+			}
+
 			if (!userButton){
 				if(flag){
 					lbr.move(handGuide);
@@ -81,39 +102,6 @@ public class TeachingByDemonstration extends RoboticsAPIApplication {
 				}
 			}
 
-			if(userButton){
-				if(!flag){
-					getLogger().info("Ramka nr: " + Integer.toString(licznik) + " zosta³a dodana.");
-					nextFrame = lbr.getCurrentCartesianPosition(lbr.getFlange());
-					frameList.add(nextFrame);
-					licznik++;
-				}
-				flag = true;
-			}
-
-			if(movingFlag && !userButton && !flag){
-				for (int i = 0; i < licznik - 1; i++){
-					lbr.move(ptp(frameList.get(i)).setJointVelocityRel(0.1).setMode(impedanceControlMode));
-				}
-				movingFlag = false;
-				getLogger().info("Flaga ruchu wylaczona");
-			}
-
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -43,61 +43,25 @@ public class TeachingBackgroundTask extends RoboticsAPICyclicBackgroundTask {
 	MediaFlangeIOGroup mediaFlange;
 	@Inject 
 	LBR lbr;
-
-
-	//private ArrayList<Frame> zapis;
-	//private ArrayList<Frame> odczyt;
-	//private Frame ramka;
-	//private ObjectOutputStream objectOutputStream;
-	//private ObjectInputStream objectInputStream;
+	
 	private boolean userButton;
 
 	public void initialize() {
 
 		initializeCyclic(0, 100, TimeUnit.MILLISECONDS, CycleBehavior.BestEffort);
 
-		//	mediaFlange = new MediaFlangeIOGroup(kuka_Sunrise_Cabinet_1);
-		//	lbr = getContext().getDeviceFromType(LBR.class);
-		//	kuka_Sunrise_Cabinet_1 = getController("KUKA_Sunrise_Cabinet_1");
 
-
-		
-
-		//zapis = new ArrayList<Frame>();
-		//odczyt = new ArrayList<Frame>();
-
-
-		//ramka = lbr.getCurrentCartesianPosition(lbr.getFlange());
-		//zapis.add(ramka);
 	}
 
 	public void runCyclic() {
 
-//		userButton = mediaFlange.getUserButton();
-//
-//		if(userButton == true){
-//			mediaFlange.setLEDBlue(true);
-//			try {
-//				Thread.sleep(50);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-//
-//		mediaFlange.setLEDBlue(false);
+		userButton = mediaFlange.getUserButton();
 
-		/*	while(true){
-			//if(userButton){
+		if(userButton ){
+			mediaFlange.setLEDBlue(true);
+		}else{
+			mediaFlange.setLEDBlue(false);
+		}
 
-			try {
-				mediaFlange.setLEDBlue(true);
-				objectOutputStream.writeObject(zapis);
-			} catch (IOException e) {
-				System.out.println("IOException");
-				e.printStackTrace();
-			}
-			//}
-		}*/
 	}
 }
